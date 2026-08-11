@@ -3,10 +3,10 @@ public class Dog extends Animal {
         super(name, age);
     }
     public void eat(){
-        System.out.println(name+"吃骨头");
+        System.out.println(getName()+"吃骨头");
     }
     public void watchdoor(){
-        System.out.println(name+"看门");
+        System.out.println(getName()+"看门");
     }
 
 }

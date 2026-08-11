@@ -1,12 +1,12 @@
-public class Animal {
+public class AnimalV2 {
     private String name;
     private int age;
-    public Animal(){
-
+    public AnimalV2(String name, int age) {
+        this.name = name;
+        this.age = age;
     }
-    public Animal(String name,int age){
-        this.name=name;
-        this.age=age;
+    public AnimalV2() {
+
     }
     public String getName() {
         return name;
@@ -20,10 +20,11 @@ public class Animal {
     public void setAge(int age) {
         this.age = age;
     }
-    public void eat(){
-        System.out.println(this.name+"吃东西");
+    public void eat() {
+        System.out.println(getName() + " is eating");
     }
-    public void sleep(){
-        System.out.println(this.name+"在睡觉");
+    public void sleep() {
+        System.out.println(getName() + " is sleeping");
     }
+
 }
