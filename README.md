@@ -23,3 +23,5 @@
 2026-8-13学习了内部类和String类
 
 2026-8-14学习了异常处理机制
+
+2026-8-15今天学习了包装类（Integer、自动装箱/拆箱）+ StringBuilder/StringBuffer
