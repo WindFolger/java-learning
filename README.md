@@ -27,3 +27,5 @@
 2026-8-15今天学习了包装类（Integer、自动装箱/拆箱）+ StringBuilder/StringBuffer
 
 2026-8-17今天学习了集合框架，学习了Arrylist和Linkedlist
+
+2026-8-19今天学习了Set接口方法和HashSet全面说明
