@@ -29,3 +29,7 @@
 2026-8-17今天学习了集合框架，学习了Arrylist和Linkedlist
 
 2026-8-19今天学习了Set接口方法和HashSet全面说明
+
+2026-8-20学习了equals/hashCode 重写 + HashMap
+
+2026-8-22今天学习了HashMap常用方法、遍历、底层结构简述
