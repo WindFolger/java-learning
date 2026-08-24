@@ -1,5 +1,11 @@
 //TIP 要<b>运行</b>代码，请按 <shortcut actionId="Run"/> 或
 // 点击装订区域中的 <icon src="AllIcons.Actions.Execute"/> 图标。
+
+/**
+ * Main - 程序入口类（26.8.15 版本）
+ * 
+ * IntelliJ IDEA 自动生成的模板类。
+ */
 public class Main {
     public static void main(String[] args) {
         //TIP 当文本光标位于高亮显示的文本处时按 <shortcut actionId="ShowIntentionActions"/>
