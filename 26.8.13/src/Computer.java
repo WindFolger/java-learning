@@ -1,9 +1,21 @@
+/**
+ * Computer - 电脑类（26.8.13 版本）
+ * 
+ * 与 26.8.12 版本相同的 Computer 类，
+ * 用于配合匿名内部类演示。
+ */
 public class Computer {
-    // USB 插槽数组（假设电脑有 4 个 USB 口）
+    
+    /** USB 插槽数组（假设电脑有 4 个 USB 口） */
     private UsbTest[] usbDevices = new UsbTest[4];
-    private int deviceCount = 0;  // 记录当前插了几个设备
+    
+    /** 记录当前插了几个设备 */
+    private int deviceCount = 0;
 
-    // 插入 USB 设备
+    /**
+     * 插入 USB 设备
+     * @param device 实现了 UsbTest 接口的设备
+     */
     public void plugIn(UsbTest device) {
         if (deviceCount < usbDevices.length) {
             usbDevices[deviceCount] = device;
@@ -14,7 +26,9 @@ public class Computer {
         }
     }
 
-    // 统一启动所有设备
+    /**
+     * 统一启动所有设备
+     */
     public void powerOn() {
         System.out.println("=== 电脑开机，启动所有 USB 设备 ===");
         for (int i = 0; i < deviceCount; i++) {
@@ -22,7 +36,9 @@ public class Computer {
         }
     }
 
-    // 统一关闭所有设备
+    /**
+     * 统一关闭所有设备
+     */
     public void powerOff() {
         System.out.println("=== 电脑关机，停止所有 USB 设备 ===");
         for (int i = 0; i < deviceCount; i++) {
