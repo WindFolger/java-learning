@@ -1,0 +1,3 @@
+Hello, World!
+这是一行中文测试。
+FileCopy 字节流复制测试。
