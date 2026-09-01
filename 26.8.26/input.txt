@@ -1,0 +1,5 @@
+Hello, World!
+这是一行中文内容。
+Java IO 流操作练习。
+BufferedReader 按行读取很方便。
+BufferedWriter newLine() 自动换行。
