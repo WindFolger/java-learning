@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java SE 全景图 · Knowledge Map</title>
+<style>
+  :root{
+    --paper:#f5f6f2;
+    --ink:#111111;
+    --muted:#888888;
+    --faint:#b9bbb2;
+    --accent:#FF5F1F;
+    --hl:#ffffa2;
+    --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:#e8e9e3;}
+  body{
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--ink);
+    overflow:hidden;
+  }
+  .mono{font-family:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;}
+
+  /* ---------- fit-to-viewport scaling ---------- */
+  #viewport{position:fixed;inset:0;overflow:auto;display:flex;align-items:center;justify-content:center;}
+  #stage{
+    position:relative;
+    width:1760px;height:1120px;
+    flex:0 0 auto;
+    background:var(--paper);
+    transform-origin:center center;
+    box-shadow:0 0 0 1px #d8d9d2;
+  }
+
+  svg#map{position:absolute;inset:0;width:100%;height:100%;}
+
+  /* ---------- header ---------- */
+  #hdr{position:absolute;left:64px;top:52px;z-index:5;}
+  #hdr h1{
+    font-size:64px;font-weight:800;letter-spacing:-0.03em;line-height:1.02;
+  }
+  #hdr h1 .se{color:var(--accent);}
+  #hdr .meta{
+    margin-top:12px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--muted);
+  }
+  #hdr .meta b{color:var(--ink);font-weight:600;}
+  #hdr .note{
+    margin-top:14px;font-size:12.5px;color:var(--ink);
+  }
+  #hdr .note em{
+    font-style:normal;
+    background:linear-gradient(transparent 55%, var(--hl) 55%);
+    padding:0 2px;
+  }
+
+  /* ---------- legend panel ---------- */
+  #legend{
+    position:absolute;left:64px;bottom:88px;z-index:5;
+    background:var(--card);border-radius:7px;padding:12px 22px;
+    display:flex;align-items:center;gap:20px;
+  }
+  #legend h2{
+    font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--muted);white-space:nowrap;
+  }
+  #legend .row{
+    display:flex;align-items:center;gap:9px;
+    font-size:12.5px;white-space:nowrap;
+    border-left:1px dashed var(--ink);padding-left:20px;
+  }
+  #legend .row .cnt{font-size:11px;color:var(--muted);letter-spacing:0.05em;}
+  #legend .row svg{flex:0 0 auto;}
+  #legend .tip{
+    font-size:11.5px;color:var(--muted);white-space:nowrap;
+    border-left:1px dashed var(--ink);padding-left:20px;
+  }
+  #legend .tip em{font-style:normal;background:linear-gradient(transparent 55%, var(--hl) 55%);padding:0 1px;color:var(--ink);}
+
+  /* ---------- nodes & labels ---------- */
+  .branch-label{
+    position:absolute;z-index:4;transform:translateY(-50%);
+    white-space:nowrap;cursor:default;
+    background:var(--paper);padding:5px 7px;
+  }
+  .branch-label .idx{
+    font-size:11px;letter-spacing:0.14em;color:var(--muted);
+    display:block;margin-bottom:3px;text-transform:uppercase;
+  }
+  .branch-label .name{
+    font-size:21px;font-weight:700;letter-spacing:0.01em;
+  }
+  .branch-label .tag{
+    display:inline-block;margin-left:8px;vertical-align:2px;
+    font-size:11px;font-weight:600;line-height:1;padding:4px 7px 3px;
+    border-radius:3px;letter-spacing:0.08em;
+  }
+  .p-solid  .tag{border:1.5px solid var(--ink);color:var(--ink);}
+  .p-half   .tag{border:1.5px solid #6a6a6a;color:#555;}
+  .p-dash   .tag{border:1.5px dashed var(--muted);color:var(--muted);}
+  .p-half .name{color:#3c3c3c;}
+  .p-dash .name{color:var(--muted);}
+
+  .leaf{
+    position:absolute;z-index:3;transform:translateY(-50%);
+    font-size:13px;letter-spacing:0.01em;white-space:nowrap;cursor:default;
+    transition:color .15s;
+  }
+  .p-solid .leaf{color:#2a2a2a;}
+  .p-half  .leaf{color:#5c5c5c;}
+  .p-dash  .leaf{color:#999;}
+  .leaf small{color:var(--faint);font-size:11px;margin-left:5px;}
+
+  /* hover highlight per branch */
+  g.br{cursor:default;}
+  g.br .conn{transition:stroke .15s;}
+  g.br:hover .conn{stroke:var(--accent)!important;}
+  g.br:hover .bus{stroke:var(--accent)!important;}
+  g.br .bnode{transition:transform .1s ease-in-out;transform-box:fill-box;transform-origin:center;}
+  g.br:hover .bnode{transform:scale(1.12);}
+
+  /* blinking "next to learn" node */
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+  .blink{animation:blink 1s infinite;}
+
+  /* rotating starburst on root */
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #starburst{animation:spin 14s linear infinite;transform-box:fill-box;transform-origin:center;}
+
+  #root-label{
+    position:absolute;left:880px;top:642px;transform:translateX(-50%);
+    text-align:center;z-index:4;
+  }
+  #root-label .t{font-size:26px;font-weight:800;letter-spacing:-0.01em;}
+  #root-label .s{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+
+  /* ---------- footer ruler ---------- */
+  #ruler{position:absolute;left:0;right:0;bottom:0;height:34px;z-index:5;}
+  #foot-meta{
+    position:absolute;left:64px;bottom:44px;z-index:5;
+    font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
+  }
+  #foot-meta-r{
+    position:absolute;right:64px;bottom:44px;z-index:5;
+    font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);
+  }
+
+  /* ---------- entrance ---------- */
+  @keyframes fadein{from{opacity:0;}to{opacity:1;}}
+  .fin{opacity:0;animation:fadein .9s forwards;}
+  .draw{stroke-dasharray:600;stroke-dashoffset:600;animation:draw 1.1s cubic-bezier(.4,0,.2,1) forwards;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+
+    <div id="hdr" class="fin" style="animation-delay:.1s">
+      <h1>Java <span class="se">SE</span> 全景图</h1>
+      <div class="meta mono">KNOWLEDGE MAP&nbsp;&nbsp;·&nbsp;&nbsp;<b>8</b> MODULES&nbsp;&nbsp;·&nbsp;&nbsp;REV 2026-09</div>
+      <div class="note">覆盖路径：基础语法 → 面向对象 → 常用类 → 异常 → 集合 → IO → 多线程 → 网络/反射，<em>当前主攻：网络与反射</em></div>
+    </div>
+
+    <div id="legend" class="fin" style="animation-delay:.3s">
+      <h2>图例 / Legend</h2>
+      <div class="row">
+        <svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="#111"/></svg>
+        熟练 · 能独立运用<span class="cnt mono">4 模块</span>
+      </div>
+      <div class="row">
+        <svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="#fff" stroke="#111" stroke-width="1.6"/><circle cx="9" cy="9" r="2.6" fill="#111"/></svg>
+        一般 · 会用但不深<span class="cnt mono">3 模块</span>
+      </div>
+      <div class="row">
+        <svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="none" stroke="#888" stroke-width="1.6" stroke-dasharray="3 3"/></svg>
+        了解 · 知道概念<span class="cnt mono">1 模块</span>
+      </div>
+      <div class="tip"><em>闪烁节点 = 下一阶段重点</em>，悬停任一分支可高亮其知识脉络。</div>
+    </div>
+
+    <svg id="map" viewBox="0 0 1760 1120" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <div id="root-label" class="fin" style="animation-delay:.5s">
+      <div class="t">JAVA SE</div>
+      <div class="s mono">ROOT / 8 BRANCHES</div>
+    </div>
+
+    <div id="foot-meta" class="mono fin" style="animation-delay:.8s">FIG.01 — JAVA SE PANORAMA</div>
+    <div id="foot-meta-r" class="mono fin" style="animation-delay:.8s">SCALE 1:1 · UNITS = TOPICS</div>
+    <svg id="ruler" class="fin" style="animation-delay:.6s"></svg>
+
+  </div>
+</div>
+
+<script>
+/* ================= data ================= */
+const BRANCHES = [
+  { id:"01", name:"基础语法", en:"SYNTAX", p:"solid", tag:"熟练", side:"L", y:262,
+    leaves:["数据类型 · 变量","运算符与表达式","流程控制","数组","方法与重载"] },
+  { id:"02", name:"面向对象", en:"OOP", p:"solid", tag:"熟练", side:"L", y:452,
+    leaves:["类与对象","封装 / 继承 / 多态","抽象类与接口","static · final","内部类"] },
+  { id:"03", name:"常用类", en:"COMMON API", p:"solid", tag:"熟练", side:"L", y:692,
+    leaves:["String / StringBuilder","包装类与自动装箱","Object · Objects","java.time 日期时间","正则表达式"] },
+  { id:"04", name:"异常处理", en:"EXCEPTION", p:"solid", tag:"熟练", side:"L", y:882,
+    leaves:["try-catch-finally","throw / throws","自定义异常","Checked / Unchecked","try-with-resources"] },
+  { id:"05", name:"集合框架", en:"COLLECTIONS", p:"half", tag:"一般", side:"R", y:262,
+    leaves:["List / Set / Map","ArrayList · LinkedList","HashMap · TreeMap","Iterator 迭代器","Comparable / Comparator"] },
+  { id:"06", name:"IO 流", en:"IO", p:"half", tag:"一般", side:"R", y:452,
+    leaves:["字节流 / 字符流","缓冲流与转换流","File 类","对象序列化","NIO 基础"] },
+  { id:"07", name:"多线程", en:"CONCURRENCY", p:"half", tag:"一般", side:"R", y:692,
+    leaves:["Thread / Runnable","synchronized 同步","Lock 锁","线程池 Executor","线程通信 wait/notify"] },
+  { id:"08", name:"网络 / 反射", en:"NETWORK · REFLECTION", p:"dash", tag:"了解", side:"R", y:882,
+    leaves:["Socket 编程","URL / HTTP 基础","Class · Method 反射","动态代理","注解 Annotation"] },
+];
+
+const W=1760, H=1120, ROOT={x:880,y:560};
+const BR_X = {L:560, R:1200};
+const LEAF_GAP=34, LEAF_END={L:506, R:1254};  // label edge near bus
+const BUS_X = {L:534, R:1226};
+
+const map = document.getElementById('map');
+const stage = document.getElementById('stage');
+const NS="http://www.w3.org/2000/svg";
+const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+const NODE_STYLE = {
+  solid:{fill:"#111", stroke:"none"},
+  half :{fill:"#fff", stroke:"#111"},
+  dash :{fill:"none", stroke:"#888"},
+};
+const LINK_COLOR = { solid:"#111", half:"#777", dash:"#a3a39c" };
+
+/* ---------- root starburst + core ---------- */
+(function root(){
+  const g = el("g",{class:"fin",style:"animation-delay:.45s"});
+  const spikes = 16, R1=34, R2=46;
+  let d="";
+  for(let i=0;i<spikes;i++){
+    const a1=(i/spikes)*Math.PI*2, a2=((i+.5)/spikes)*Math.PI*2;
+    d += `M${ROOT.x+Math.cos(a1)*R1},${ROOT.y+Math.sin(a1)*R1} L${ROOT.x+Math.cos(a2)*R2},${ROOT.y+Math.sin(a2)*R2} `;
+  }
+  const star = el("path",{id:"starburst",d,stroke:"#FF5F1F","stroke-width":3,"stroke-linecap":"round",fill:"none"});
+  g.appendChild(star);
+  g.appendChild(el("circle",{cx:ROOT.x,cy:ROOT.y,r:24,fill:"#FF5F1F"}));
+  g.appendChild(el("circle",{cx:ROOT.x,cy:ROOT.y,r:9,fill:"#f5f6f2"}));
+  map.appendChild(g);
+})();
+
+/* ---------- branches ---------- */
+BRANCHES.forEach((b,i)=>{
+  const bx = BR_X[b.side], by = b.y;
+  const g = el("g",{class:`br fin`,style:`animation-delay:${.25+i*.08}s`});
+  const st = NODE_STYLE[b.p], lc = LINK_COLOR[b.p];
+
+  /* curved connector root -> branch node */
+  const dir = b.side==="L" ? 1 : -1;
+  const c1x = ROOT.x - dir*190, c2x = bx + dir*150;
+  const path = el("path",{
+    class:"conn draw",
+    d:`M${ROOT.x - dir*46},${ROOT.y} C${c1x},${ROOT.y} ${c2x},${by} ${bx},${by}`,
+    fill:"none", stroke:lc, "stroke-width": b.p==="solid"?2.2:1.6,
+    "stroke-dasharray": b.p==="dash" ? "6 5" : "600",
+    style:`animation-delay:${.3+i*.08}s`
+  });
+  if(b.p==="dash"){ path.classList.remove("draw"); path.setAttribute("stroke-dasharray","6 5"); }
+  g.appendChild(path);
+
+  /* bus: vertical line + stubs to leaves */
+  const busX = BUS_X[b.side];
+  const y0 = by - 2*LEAF_GAP, y1 = by + 2*LEAF_GAP;
+  g.appendChild(el("line",{class:"bus",x1:bx - (b.side==="L"?10:-10)*0, y1:by, x2:busX, y2:by, stroke:lc,"stroke-width":1.4,
+    "stroke-dasharray": b.p==="dash"?"4 4":"none"}));
+  g.appendChild(el("line",{class:"bus",x1:busX,y1:y0,x2:busX,y2:y1,stroke:lc,"stroke-width":1.4,
+    "stroke-dasharray": b.p==="dash"?"4 4":"none"}));
+
+  b.leaves.forEach((leaf,j)=>{
+    const ly = by + (j-2)*LEAF_GAP;
+    const stubEnd = LEAF_END[b.side] + (b.side==="L"?8:-8);
+    g.appendChild(el("line",{class:"bus",x1:busX,y1:ly,x2:stubEnd,y2:ly,stroke:lc,"stroke-width":1.1,
+      "stroke-dasharray": b.p==="dash"?"4 4":"none"}));
+    /* leaf dot */
+    g.appendChild(el("circle",{cx:stubEnd,cy:ly,r:2.4,fill:lc}));
+  });
+
+  /* branch node */
+  let node;
+  if(b.p==="solid"){
+    node = el("circle",{class:"bnode",cx:bx,cy:by,r:13,fill:st.fill});
+  }else if(b.p==="half"){
+    node = el("g",{class:"bnode"});
+    node.appendChild(el("circle",{cx:bx,cy:by,r:13,fill:"#fff",stroke:"#111","stroke-width":2}));
+    node.appendChild(el("circle",{cx:bx,cy:by,r:4.5,fill:"#111"}));
+  }else{
+    node = el("circle",{class:"bnode blink",cx:bx,cy:by,r:13,fill:"none",stroke:"#888","stroke-width":2,"stroke-dasharray":"4 4"});
+  }
+  g.appendChild(node);
+  map.appendChild(g);
+
+  /* branch label (HTML) */
+  const lab = document.createElement("div");
+  lab.className = `branch-label p-${b.p} fin`;
+  lab.style.animationDelay = `${.35+i*.08}s`;
+  lab.style.top = by + "px";
+  const off = 26;
+  if(b.side==="L"){ lab.style.left = (bx+off) + "px"; }
+  else{ lab.style.right = (W-bx+off) + "px"; lab.style.textAlign="right"; }
+  lab.innerHTML = `<span class="idx mono">${b.id} — ${b.en}</span><span class="name">${b.name}</span><span class="tag">${b.tag}</span>`;
+  stage.appendChild(lab);
+
+  /* leaf labels (HTML) */
+  b.leaves.forEach((leaf,j)=>{
+    const ly = by + (j-2)*LEAF_GAP;
+    const d = document.createElement("div");
+    d.className = `leaf fin`;
+    d.style.animationDelay = `${.45+i*.08+j*.03}s`;
+    d.style.top = ly + "px";
+    const pad = 16;
+    if(b.side==="L"){ d.style.right=(W-LEAF_END.L+pad)+"px"; d.style.textAlign="right"; }
+    else{ d.style.left = (LEAF_END.R+pad) + "px"; }
+    /* split "main · sub" for dimming */
+    const m = leaf.split(/(?=·)/);
+    d.innerHTML = m.length>1 ? `${m[0]}<small>${m.slice(1).join("")}</small>` : leaf;
+    /* wrap per-branch for color: use a parent class trick via inline color */
+    const colors={solid:"#2a2a2a",half:"#5c5c5c",dash:"#999"};
+    d.style.color = colors[b.p];
+    stage.appendChild(d);
+
+    /* hover sync: label hover highlights svg group */
+    d.addEventListener("mouseenter",()=>g.classList.add("hov"));
+    d.addEventListener("mouseleave",()=>g.classList.remove("hov"));
+  });
+  lab.addEventListener("mouseenter",()=>g.classList.add("hov"));
+  lab.addEventListener("mouseleave",()=>g.classList.remove("hov"));
+});
+
+/* hover style via injected rule (class .hov mirrors :hover) */
+const st=document.createElement("style");
+st.textContent=`g.br.hov .conn{stroke:#FF5F1F!important} g.br.hov .bus{stroke:#FF5F1F!important} g.br.hov .bnode{transform:scale(1.12)}`;
+document.head.appendChild(st);
+
+/* ---------- footer ruler ---------- */
+(function ruler(){
+  const r=document.getElementById("ruler");
+  r.setAttribute("viewBox",`0 0 ${W} 34`);
+  r.setAttribute("preserveAspectRatio","none");
+  const y=34;
+  r.appendChild(el("line",{x1:0,y1:y,x2:W,y2:y,stroke:"#111","stroke-width":1.4}));
+  for(let x=0;x<=W;x+=20){
+    const big = x%100===0, mid = x%50===0;
+    const h = big?16:(mid?10:5);
+    r.appendChild(el("line",{x1:x,y1:y,x2:x,y2:y-h,stroke:"#111","stroke-width":big?1.4:0.8}));
+    if(big && x<W){
+      const t=el("text",{x:x+5,y:y-18,"font-size":9,fill:"#888","font-family":"ui-monospace,Consolas,monospace"});
+      t.textContent=String(x).padStart(4,"0");
+      r.appendChild(t);
+    }
+  }
+})();
+
+/* ---------- fit stage to viewport ---------- */
+function fit(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const s=Math.min(vw/W, vh/H);
+  stage.style.transform = s<1 ? `scale(${s})` : "none";
+  document.getElementById("viewport").style.alignItems = s<1? "center":"center";
+}
+window.addEventListener("resize",fit);
+fit();
+</script>
+</body>
+</html>
