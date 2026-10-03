@@ -1,6 +1,6 @@
 public class TestDML {
     public static void main(String[] args) {
-        int insertRows = DBUtil.update(
+       /*int insertRows = DBUtil.update(
                 "INSERT INTO product(name, price, origin, stock) VALUES(?, ?, ?, ?)",
                 "香蕉", 3.5, "广西", 50
         );
@@ -16,6 +16,11 @@ public class TestDML {
                 "DELETE FROM product WHERE id = ?",
                 3
         );
-        System.out.println("删除行数：" + deleteRows);
+        System.out.println("删除行数：" + deleteRows);*/
+        int farmerRows = DBUtil.update(
+                "INSERT INTO farmer(name,phone,存款) VALUES(?,?,?)",
+                "胡德","19192111245",522220.1
+        );
+        System.out.println(farmerRows);
     }
 }
